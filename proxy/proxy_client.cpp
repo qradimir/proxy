@@ -36,10 +36,8 @@ namespace proxy
                 log(util::INFO) << "Request parsed:\n" << req;
                 std::string host_name = network::http::extract_host(request);
 
-                if (!host || host_name != host->name) {
-                    server->request_resolution(host_name, this);
-                    close_host();
-                }
+                server->request_resolution(host_name, this);
+                close_host();
 
                 std::vector<char> serialized_req{req.cbegin(), req.cend()};
                 write_buf.write(serialized_req);
