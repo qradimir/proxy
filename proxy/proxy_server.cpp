@@ -45,7 +45,7 @@ namespace proxy
         auto waiters = resolve_waiters.equal_range(host);
         if (waiters.first != waiters.second) {
             if (endpoints.size() == 0) {
-                proxy::log(util::DEBUG) << "No resolution for host: " + host;
+                proxy::log(util::DEBUG) << "No resolution for host: " + host + "\n";
                 for (auto it = waiters.first; it != waiters.second; ++it) {
                     auto client_it = clients.find(it->second);
                     if (client_it != clients.end()) {
@@ -64,7 +64,7 @@ namespace proxy
 
             resolve_waiters.erase(waiters.first, waiters.second);
         } else {
-            proxy::log(util::DEBUG) << "No waiters for resolved host: " + host;
+            proxy::log(util::DEBUG) << "No waiters for resolved host: " + host + "\n";
         }
     }
 
