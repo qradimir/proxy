@@ -3,7 +3,6 @@
 //
 
 #include <iostream>
-#include <zconf.h>
 #include <netinet/in.h>
 #include "file_descriptor.h"
 #include "../util/log.h"

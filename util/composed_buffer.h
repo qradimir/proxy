@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <string>
+#include <vector>
 #include "simple_buffer.h"
 
 namespace util
