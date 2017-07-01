@@ -92,6 +92,11 @@ namespace proxy
                                << host_name << " (" << host->get_fd()->raw_fd() << ").\n";
     }
 
+    std::unique_ptr<network::epoll_client> extract_epoll_client(std::unique_ptr<proxy_client_host> &&host) {
+        auto host_ptr = host.release();
+        return std::unique_ptr<network::epoll_client>(static_cast<network::epoll_client *>(host_ptr));
+    }
+
     void proxy_client::close_host()
     {
         if (host) {
@@ -99,7 +104,7 @@ namespace proxy
                                    << host->name << " (" << host->get_fd()->raw_fd() << ").\n";
             host->close();
             write_buf = {};
-            host = {};
+            get_epoll()->schedule_close(extract_epoll_client(std::move(host)));
         }
     }
 

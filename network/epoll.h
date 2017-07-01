@@ -48,6 +48,8 @@ namespace network
         epoll *get_epoll() noexcept;
 
         file_descriptor *get_fd() noexcept;
+
+        virtual ~epoll_client() {};
     };
 
     class epoll : public file_descriptor
@@ -60,6 +62,8 @@ namespace network
 
         void delete_client(epoll_client *cl);
 
+        std::vector<std::unique_ptr<epoll_client>> scheduled_clients;
+
         bool running = false;
     public:
         epoll();
@@ -67,6 +71,10 @@ namespace network
         void run();
 
         void stop() noexcept;
+
+        void schedule_close(std::unique_ptr<epoll_client> client);
+
+
     };
 
 } //namespace network

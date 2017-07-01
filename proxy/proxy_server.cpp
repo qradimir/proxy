@@ -25,31 +25,46 @@ namespace proxy
         clients.emplace(fd, std::make_unique<proxy_client>(std::move(client), this));
     }
 
+    std::unique_ptr<network::epoll_client> extract_epoll_client(std::unique_ptr<proxy_client> &&host) {
+        auto host_ptr = host.release();
+        return std::unique_ptr<network::epoll_client>(static_cast<network::epoll_client *>(host_ptr));
+    }
+
     void proxy_server::drop_client(proxy_client *client)
     {
         auto client_it = clients.find(client->get_fd()->raw_fd());
 
         if (client_it != clients.end()) {
+            get_epoll()->schedule_close(extract_epoll_client(std::move(client_it->second)));
             clients.erase(client_it);
         }
     }
-
 
     void proxy_server::supply_resolution(std::string const &host, std::vector<network::ipv4_endpoint> endpoints)
     {
         auto waiters = resolve_waiters.equal_range(host);
         if (waiters.first != waiters.second) {
             if (endpoints.size() == 0) {
-                throw network::network_error{"No resolution for " + host};
-            }
-            network::ipv4_endpoint endpoint = endpoints.front();
-            for (auto it = waiters.first; it != waiters.second; ++it) {
-                auto client_it = clients.find(it->second);
-                if (client_it != clients.end()) {
-                    client_it->second->setup_host(endpoint, host);
+                proxy::log(util::DEBUG) << "No resolution for host: " + host;
+                for (auto it = waiters.first; it != waiters.second; ++it) {
+                    auto client_it = clients.find(it->second);
+                    if (client_it != clients.end()) {
+                        client_it->second->close();
+                    }
+                }
+            } else {
+                network::ipv4_endpoint endpoint = endpoints.front();
+                for (auto it = waiters.first; it != waiters.second; ++it) {
+                    auto client_it = clients.find(it->second);
+                    if (client_it != clients.end()) {
+                        client_it->second->setup_host(endpoint, host);
+                    }
                 }
             }
+
             resolve_waiters.erase(waiters.first, waiters.second);
+        } else {
+            proxy::log(util::DEBUG) << "No waiters for resolved host: " + host;
         }
     }
 

@@ -97,32 +97,30 @@ namespace network
 
             for (int i = 0; i < n; ++i) {
                 auto cl = static_cast<epoll_client *>(events[i].data.ptr);
-                bool closed = false;
-                if (running && events[i].events & CALLBACK_ON_READ) {
+                if (cl->open && running && events[i].events & CALLBACK_ON_READ) {
                     log_epoll(DEBUG) << "reading from " << cl->fd->raw_fd() << "...\n";
                     try {
                         cl->on_read();
                     } catch (std::exception const &e) {
                         log_epoll(ERROR) << "Error occurred on reading from " << cl->fd->raw_fd() << " : " << e.what() << ".\n";
                         cl->close();
-                        closed = true;
                     }
                 }
-                if (!closed && running && events[i].events & CALLBACK_ON_WRITE) {
+                if (cl->open && running && events[i].events & CALLBACK_ON_WRITE) {
                     log_epoll(DEBUG) << "writing to " << cl->fd->raw_fd() << "...\n";
                     try {
                         cl->on_write();
                     } catch (std::exception const &e) {
                         log_epoll(ERROR) << "Error occurred on writing to " << cl->fd->raw_fd() << " : " << e.what() << ".\n";
                         cl->close();
-                        closed = true;
                     }
                 }
-                if (!closed && running && events[i].events & CALLBACK_ON_CLOSE) {
+                if (cl->open && running && events[i].events & CALLBACK_ON_CLOSE) {
                     log_epoll(DEBUG) << "closing " << cl->fd->raw_fd() << "...\n";
                     cl->close();
                 }
             }
+            scheduled_clients.clear();
         }
     }
 
@@ -181,5 +179,10 @@ namespace network
     file_descriptor *epoll_client::get_fd() noexcept
     {
         return fd.get();
+    }
+
+    void epoll::schedule_close(std::unique_ptr<epoll_client> client)
+    {
+        scheduled_clients.push_back(std::move(client));
     }
 }

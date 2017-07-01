@@ -16,7 +16,7 @@ namespace proxy{
 
     class proxy_client;
 
-    class proxy_client_host : network::epoll_client
+    class proxy_client_host : public network::epoll_client
     {
     private:
         friend class proxy_client;

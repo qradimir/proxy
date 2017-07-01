@@ -20,7 +20,12 @@ namespace proxy
     void host_resolver::consume_host(std::string const &host)
     {
         executor.consume([this, host]() {
-            std::vector<network::ipv4_endpoint> endpoints = network::get_hosts(host);
+            std::vector<network::ipv4_endpoint> endpoints;
+            try {
+                endpoints = network::get_hosts(host);
+            } catch (network::network_error &) {
+                endpoints = {};
+            }
             results.push(std::make_pair(std::move(host), std::move(endpoints)));
             get_notification()->write(1);
         });
