@@ -49,7 +49,7 @@ namespace network
         event.events |= CALLBACK_ON_CLOSE;
 
         event.data.ptr = cl;
-        epoll_ctl(raw_fd(), EPOLL_CTL_ADD, cl->fd->raw_fd(), &event);
+        assert_ret_code(epoll_ctl(raw_fd(), EPOLL_CTL_ADD, cl->fd->raw_fd(), &event));
     }
 
     void epoll::modify_client(epoll_client *cl)
@@ -73,14 +73,14 @@ namespace network
         event.events |= CALLBACK_ON_CLOSE;
 
         event.data.ptr = cl;
-        epoll_ctl(raw_fd(), EPOLL_CTL_MOD, cl->fd->raw_fd(), &event);
+        assert_ret_code(epoll_ctl(raw_fd(), EPOLL_CTL_MOD, cl->fd->raw_fd(), &event));
     }
 
 
     void epoll::delete_client(epoll_client *cl)
     {
         log_epoll(DEBUG) << "epoll client (" << cl->fd->raw_fd() << ") deleted" << "\n";
-        epoll_ctl(raw_fd(), EPOLL_CTL_DEL, cl->fd->raw_fd(), nullptr);
+        assert_ret_code(epoll_ctl(raw_fd(), EPOLL_CTL_DEL, cl->fd->raw_fd(), nullptr));
     }
 
     void epoll::run()
