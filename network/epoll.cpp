@@ -30,7 +30,14 @@ namespace network
 
     void epoll::add_client(epoll_client *cl)
     {
-        log_epoll(DEBUG) << "epoll client (" << cl->fd->raw_fd() << ") added" << "\n";
+        log_epoll(DEBUG) << "epoll client ("
+                         << cl->fd->raw_fd()
+                         << ") added ["
+                         << cl->call_on_read
+                         << ", "
+                         << cl->call_on_write
+                         << "]"
+                         << "\n";
         epoll_event event;
         event.events = 0;
 
@@ -47,7 +54,14 @@ namespace network
 
     void epoll::modify_client(epoll_client *cl)
     {
-        log_epoll(DEBUG) << "epoll client (" << cl->fd->raw_fd() << ") modified" << "\n";
+        log_epoll(DEBUG) << "epoll client ("
+                         << cl->fd->raw_fd()
+                         << ") modified ["
+                         << cl->call_on_read
+                         << ", "
+                         << cl->call_on_write
+                         << "]"
+                         << "\n";
         epoll_event event;
         event.events = 0;
 
