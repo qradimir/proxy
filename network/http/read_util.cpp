@@ -27,7 +27,7 @@ namespace network { namespace http
     std::unique_ptr<std::string> scan_word_until_space(util::composed_buffer<char> *buffer)
     {
         for (auto scan_it = buffer->begin(); scan_it != buffer->end(); ++scan_it) {
-            if (matches(scan_it, buffer->end(), CRLF)) {
+            if (scan_it != buffer->begin() && matches(scan_it, buffer->end(), CRLF)) {
                 throw parse_error{"Found - CRLF, Expected - SPACE"};
             }
             if (matches(scan_it, buffer->end(), SPACE)) {
@@ -42,7 +42,7 @@ namespace network { namespace http
     std::unique_ptr<std::string> scan_word_until_colon(util::composed_buffer<char> *buffer)
     {
         for (auto scan_it = buffer->begin(); scan_it != buffer->end(); ++scan_it) {
-            if (matches(scan_it, buffer->end(), CRLF)) {
+            if (scan_it != buffer->begin() && matches(scan_it, buffer->end(), CRLF)) {
                 throw parse_error{"Found - CRLF, Expected - COLON"};
             }
             if (matches(scan_it, buffer->end(), COLON)) {

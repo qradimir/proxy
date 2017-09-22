@@ -19,26 +19,22 @@ using namespace util;
 /*
  *      epoll
  */
-namespace network
-{
+namespace network {
     util::log log_epoll{"epoll"};
 
     epoll::epoll()
-            : file_descriptor(::epoll_create1(0))
-    {
+            : file_descriptor(::epoll_create1(0)) {
     }
 
-    void epoll::add_client(epoll_client *cl)
-    {
+    void epoll::add_client(epoll_client *cl) {
         log_epoll(DEBUG) << "epoll client ("
                          << cl->fd->raw_fd()
-                         << ") added ["
-                         << cl->call_on_read
-                         << ", "
-                         << cl->call_on_write
+                         << ") added [ "
+                         << (cl->call_on_read ? "read " : "")
+                         << (cl->call_on_write ? "write " : "")
                          << "]"
                          << "\n";
-        epoll_event event;
+        epoll_event event{};
         event.events = 0;
 
         if (cl->call_on_read)
@@ -52,17 +48,15 @@ namespace network
         assert_ret_code(epoll_ctl(raw_fd(), EPOLL_CTL_ADD, cl->fd->raw_fd(), &event));
     }
 
-    void epoll::modify_client(epoll_client *cl)
-    {
+    void epoll::modify_client(epoll_client *cl) {
         log_epoll(DEBUG) << "epoll client ("
                          << cl->fd->raw_fd()
-                         << ") modified ["
-                         << cl->call_on_read
-                         << ", "
-                         << cl->call_on_write
+                         << ") modified [ "
+                         << (cl->call_on_read ? "read " : "")
+                         << (cl->call_on_write ? "write " : "")
                          << "]"
                          << "\n";
-        epoll_event event;
+        epoll_event event{};
         event.events = 0;
 
         if (cl->call_on_read)
@@ -77,14 +71,12 @@ namespace network
     }
 
 
-    void epoll::delete_client(epoll_client *cl)
-    {
+    void epoll::delete_client(epoll_client *cl) {
         log_epoll(DEBUG) << "epoll client (" << cl->fd->raw_fd() << ") deleted" << "\n";
         assert_ret_code(epoll_ctl(raw_fd(), EPOLL_CTL_DEL, cl->fd->raw_fd(), nullptr));
     }
 
-    void epoll::run()
-    {
+    void epoll::run() {
         running = true;
         epoll_event events[MAX_EVENT_COUNT];
         int n;
@@ -95,6 +87,8 @@ namespace network
                 continue;
             }
 
+            log_epoll(DEBUG) << "accepting " << n << "events...\n";
+
             for (int i = 0; i < n; ++i) {
                 auto cl = static_cast<epoll_client *>(events[i].data.ptr);
                 if (cl->open && running && events[i].events & CALLBACK_ON_READ) {
@@ -102,8 +96,9 @@ namespace network
                     try {
                         cl->on_read();
                     } catch (std::exception const &e) {
-                        log_epoll(ERROR) << "Error occurred on reading from " << cl->fd->raw_fd() << " : " << e.what() << ".\n";
-                        cl->close();
+                        log_epoll(ERROR) << "Error occurred on reading from "
+                                         << cl->fd->raw_fd() << " : "
+                                         << e.what() << ".\n";
                     }
                 }
                 if (cl->open && running && events[i].events & CALLBACK_ON_WRITE) {
@@ -111,21 +106,21 @@ namespace network
                     try {
                         cl->on_write();
                     } catch (std::exception const &e) {
-                        log_epoll(ERROR) << "Error occurred on writing to " << cl->fd->raw_fd() << " : " << e.what() << ".\n";
-                        cl->close();
+                        log_epoll(ERROR) << "Error occurred on writing to "
+                                         << cl->fd->raw_fd() << " : "
+                                         << e.what() << ".\n";
                     }
                 }
                 if (cl->open && running && events[i].events & CALLBACK_ON_CLOSE) {
                     log_epoll(DEBUG) << "closing " << cl->fd->raw_fd() << "...\n";
-                    cl->close();
+                    cl->on_close();
                 }
             }
             scheduled_clients.clear();
         }
     }
 
-    void epoll::stop() noexcept
-    {
+    void epoll::stop() noexcept {
         running = false;
     }
 
@@ -134,35 +129,36 @@ namespace network
  */
 
     epoll_client::epoll_client(std::unique_ptr<file_descriptor> fd, epoll *ep)
-            :
-            fd(std::move(fd)), ep(ep)
-    {
+            : fd(std::move(fd)), ep(ep) {
     }
 
-    void epoll_client::init(bool call_on_read, bool call_on_write)
-    {
+    void epoll_client::init(bool call_on_read, bool call_on_write) {
+        if (open)
+            return;
+
         this->call_on_read = call_on_read;
         this->call_on_write = call_on_write;
         ep->add_client(this);
         open = true;
     }
 
-    void epoll_client::update(bool call_on_read, bool call_on_write)
-    {
+    void epoll_client::update(bool call_on_read, bool call_on_write) {
+        if (!open)
+            return;
         if (this->call_on_read == call_on_read && this->call_on_write == call_on_write)
             return;
+
         this->call_on_read = call_on_read;
         this->call_on_write = call_on_write;
         ep->modify_client(this);
     }
 
-    void epoll_client::close()
-    {
-        if (open) {
-            open = false;
-            ep->delete_client(this);
-            on_close();
-        }
+    void epoll_client::close() {
+        if (!open)
+            return;
+
+        ep->delete_client(this);
+        open = false;
     }
 
     void epoll_client::on_read() {}
@@ -171,18 +167,16 @@ namespace network
 
     void epoll_client::on_close() {}
 
-    epoll *epoll_client::get_epoll() noexcept
-    {
+    epoll *epoll_client::get_epoll() noexcept {
         return ep;
     }
 
-    file_descriptor *epoll_client::get_fd() noexcept
-    {
+    file_descriptor *epoll_client::get_fd() noexcept {
         return fd.get();
     }
 
-    void epoll::schedule_close(std::unique_ptr<epoll_client> client)
-    {
+    void epoll::schedule_cleanup(std::unique_ptr<epoll_client> client) {
+        log_epoll(DEBUG) << "schedule cleanup of " << client->fd->raw_fd() << "\n";
         scheduled_clients.push_back(std::move(client));
     }
 }

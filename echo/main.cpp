@@ -2,8 +2,7 @@
 #include "echo_client.h"
 #include "echo_server.h"
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
     uint16_t port_raw = 3338;
     if (argc > 1) {
         port_raw = static_cast<uint16_t >(std::stoi(argv[1]));

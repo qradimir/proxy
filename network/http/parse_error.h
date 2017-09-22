@@ -15,11 +15,11 @@ namespace network { namespace http
     class parse_error : public std::runtime_error
     {
     public:
-        parse_error(std::string const &what)
-                : std::runtime_error("Bad Request: " + what) {}
+        explicit parse_error(std::string const &what)
+                : std::runtime_error("Bad message: " + what) {}
 
         parse_error()
-                : std::runtime_error("Bad Request") {}
+                : std::runtime_error("Bad message") {}
     };
 }}
 

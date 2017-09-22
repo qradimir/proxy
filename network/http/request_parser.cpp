@@ -5,6 +5,7 @@
 #include <iostream>
 #include "request_parser.h"
 #include "read_util.h"
+#include "../../util/log.h"
 
 namespace network { namespace http
 {
@@ -24,7 +25,7 @@ namespace network { namespace http
                 case ON_STARTING_LINE: {
                     std::unique_ptr<std::string> type_ref = scan_word_until_space(buffer);
                     if (type_ref) {
-                        parsed_type = from_string(*type_ref);
+                        parsed_type = *type_ref;
                         parser_state = ON_STARTING_LINE_URI;
                         break;
                     }

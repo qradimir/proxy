@@ -23,10 +23,11 @@ namespace network { namespace http
 
     public:
         virtual bool try_advance() = 0;
+
         virtual ~msg_scanner() = default;
     };
 
-    std::unique_ptr<msg_scanner> scanner_for(request const &req,
+    std::unique_ptr<msg_scanner> scanner_for(request const &msg,
                                              util::composed_buffer<char> *read_buffer,
                                              util::composed_buffer<char> *write_buffer);
 }}

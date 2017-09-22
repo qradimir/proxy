@@ -8,24 +8,20 @@
 #include <string>
 #include <iostream>
 
-namespace util
-{
+namespace util {
 
-    enum log_level : int
-    {
+    enum log_level : int {
         DEBUG, INFO, ERROR
     };
 
-    class log
-    {
+    class log {
     public:
         log(std::string name, std::ostream *backed_stream = &std::cout);
 
         log &operator()(log_level level);
 
         template<typename T>
-        log &operator<<(const T &t)
-        {
+        log &operator<<(const T &t) {
             *stream << t;
             return *this;
         }

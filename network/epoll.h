@@ -45,11 +45,15 @@ namespace network
 
         void close();
 
+        inline bool is_open() const noexcept {
+            return open;
+        }
+
         epoll *get_epoll() noexcept;
 
         file_descriptor *get_fd() noexcept;
 
-        virtual ~epoll_client() {};
+        virtual ~epoll_client() = default;
     };
 
     class epoll : public file_descriptor
@@ -72,9 +76,7 @@ namespace network
 
         void stop() noexcept;
 
-        void schedule_close(std::unique_ptr<epoll_client> client);
-
-
+        void schedule_cleanup(std::unique_ptr<epoll_client> client);
     };
 
 } //namespace network

@@ -38,6 +38,8 @@ namespace proxy {
 
         std::unique_ptr<proxy_client_host> host;
 
+        bool got_close = false;
+
         void on_read() override;
 
         void on_write() override;
@@ -48,7 +50,7 @@ namespace proxy {
 
         void update_host();
 
-        void close_host();
+        void drop_host();
 
     public:
         bool active = true;

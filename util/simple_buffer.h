@@ -8,11 +8,9 @@
 #include <cstddef>
 #include <algorithm>
 
-namespace util
-{
+namespace util {
     template<typename T>
-    class simple_buffer
-    {
+    class simple_buffer {
     private:
         size_t begin_pos;
         size_t end_pos;
@@ -22,48 +20,40 @@ namespace util
     public:
 
         simple_buffer(size_t capacity = 1024)
-                : begin_pos(0), end_pos(0), capacity(capacity), buf(new T[capacity])
-        {
+                : begin_pos(0), end_pos(0), capacity(capacity), buf(new T[capacity]) {
         }
 
         simple_buffer(simple_buffer const &other)
-                : begin_pos(other.begin_pos), end_pos(other.end_pos), capacity(other.capacity)
-        {
+                : begin_pos(other.begin_pos), end_pos(other.end_pos), capacity(other.capacity) {
             for (size_t i = begin_pos; i < end_pos; i++) {
                 buf[i] = other.buf[i];
             }
         }
 
         simple_buffer(simple_buffer &&other)
-                : begin_pos(other.begin_pos), end_pos(other.end_pos), capacity(other.capacity), buf(nullptr)
-        {
+                : begin_pos(other.begin_pos), end_pos(other.end_pos), capacity(other.capacity), buf(nullptr) {
             std::swap(buf, other.buf);
         }
 
-        ~simple_buffer()
-        {
+        ~simple_buffer() {
             if (buf != nullptr) {
                 delete[] buf;
             }
         }
 
-        T const *cbegin() const noexcept
-        {
+        T const *cbegin() const noexcept {
             return buf + begin_pos;
         }
 
-        T *begin() noexcept
-        {
+        T *begin() noexcept {
             return buf + begin_pos;
         }
 
-        T const *cend() const noexcept
-        {
+        T const *cend() const noexcept {
             return buf + end_pos;
         }
 
-        T *end() noexcept
-        {
+        T *end() noexcept {
             return buf + end_pos;
         }
 
@@ -77,7 +67,7 @@ namespace util
             }
         }
 
-        void operator=(simple_buffer  &&other) {
+        void operator=(simple_buffer &&other) {
             begin_pos = other.begin_pos;
             end_pos = other.begin_pos;
             capacity = other.capacity;
@@ -85,27 +75,23 @@ namespace util
         }
 
 
-        size_t pop(size_t count) noexcept
-        {
+        size_t pop(size_t count) noexcept {
             size_t pop_count = std::min(count, end_pos - begin_pos);
             begin_pos += pop_count;
             return pop_count;
         }
 
-        size_t push(size_t count) noexcept
-        {
+        size_t push(size_t count) noexcept {
             size_t push_count = std::min(count, capacity - end_pos);
             end_pos += push_count;
             return push_count;
         }
 
-        size_t size() const noexcept
-        {
+        size_t size() const noexcept {
             return end_pos - begin_pos;
         }
 
-        size_t remaining() const noexcept
-        {
+        size_t remaining() const noexcept {
             return capacity - end_pos;
         }
     };

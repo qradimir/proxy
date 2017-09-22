@@ -25,14 +25,19 @@ namespace proxy{
         std::string name;
         util::composed_buffer<char> response_buf;
 
+        bool got_close = false;
+
         void on_read() override;
 
         void on_write() override;
+
+        void on_close() override;
 
         network::client_socket *socket() noexcept;
 
     public:
         proxy_client_host(std::unique_ptr<network::client_socket> &&socket, proxy_client *client, const std::string &name);
+
     };
 }
 

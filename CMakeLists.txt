@@ -13,9 +13,6 @@ set(CMAKE_CXX_FLAGS_DEBUG
 set(CMAKE_CXX_FLAGS_RELEASE
         "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
-# set(BOOST_ROOT /usr/local/include/boost)
-# find_package(Boost 1.61.0 REQUIRED COMPONENTS optional )
-
 set(UTIL_SRC
         util/composed_buffer.h
         util/log.h util/log.cpp

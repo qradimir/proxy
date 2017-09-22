@@ -11,10 +11,8 @@
 #include "echo_client.h"
 #include "../network/server_socket.h"
 
-namespace echo
-{
-    class echo_server : network::epoll_client
-    {
+namespace echo {
+    class echo_server : network::epoll_client {
     private:
         std::vector<std::unique_ptr<echo_client>> clients;
 

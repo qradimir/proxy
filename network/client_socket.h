@@ -16,7 +16,7 @@ namespace network
     class client_socket : public file_descriptor
     {
     private:
-        client_socket(int fd);
+        explicit client_socket(int fd) noexcept;
 
         friend class server_socket;
 
@@ -24,7 +24,7 @@ namespace network
 
     public:
 
-        client_socket(client_socket &&);
+        client_socket(client_socket &&) noexcept;
 
         size_t receive(util::simple_buffer<char> &buf);
 

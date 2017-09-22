@@ -6,8 +6,7 @@
 
 namespace util {
 
-    std::string to_raw(std::string const &str)
-    {
+    std::string to_raw(std::string const &str) {
         std::string ret{};
         for (size_t i = 0; i < str.size(); ++i) {
             const char &ch = str[i];
@@ -35,18 +34,15 @@ namespace util {
 
 
     log::log(std::string name, std::ostream *backed_stream)
-            : name(name), stream(backed_stream)
-    {
+            : name(name), stream(backed_stream) {
     }
 
-    log &log::operator()(log_level level)
-    {
+    log &log::operator()(log_level level) {
         *stream << level_presentation(level) << " " << name << " -- ";
         return *this;
     }
 
-    std::string log::level_presentation(log_level level)
-    {
+    std::string log::level_presentation(log_level level) {
         switch (level) {
             case DEBUG:
                 return "[ DEBUG ]";

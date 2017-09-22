@@ -32,15 +32,18 @@ namespace proxy
                 network::http::request &request = *request_ref;
                 request.relativize();
 
+                // prevent caching
+                //  request.get_headers().erase("If-Modified-Since");
+                //  request.get_headers().erase("If-None-Match");
+
                 std::string req = to_string(request);
                 log(util::INFO) << "Request parsed:\n" << req;
                 std::string host_name = network::http::extract_host(request);
 
                 server->request_resolution(host_name, this);
-                close_host();
+                drop_host();
 
-                std::vector<char> serialized_req{req.cbegin(), req.cend()};
-                write_buf.write(serialized_req);
+                write_buf.write(std::vector<char>{req.cbegin(), req.cend()});
 
                 scanner = network::http::scanner_for(request, &read_buf, &write_buf);
                 if (scanner && scanner->try_advance()) {
@@ -56,9 +59,17 @@ namespace proxy
     {
         if (host) {
             util::simple_buffer<char> &buffer = host->response_buf.front_buffer();
+            const char *begin = buffer.begin();
             socket()->send(buffer);
+            const char *end = buffer.begin();
+            std::string msg{begin, end};
             host->response_buf.adjust_front();
-            update(true, !host->response_buf.empty());
+            log(util::DEBUG) << "Response part sent '" << util::to_raw(msg) << "'\n";
+            if (!host->is_open() && host->response_buf.empty()) {
+                server->drop_client(get_fd()->raw_fd());
+            } else {
+                update(true, !host->response_buf.empty());
+            }
         } else {
             update(true, false);
         }
@@ -66,8 +77,8 @@ namespace proxy
 
     void proxy_client::on_close()
     {
-        close_host();
-        server->drop_client(this);
+        drop_host();
+        server->drop_client(get_fd()->raw_fd());
     }
 
     network::client_socket *proxy_client::socket() noexcept
@@ -95,14 +106,14 @@ namespace proxy
         return std::unique_ptr<network::epoll_client>(static_cast<network::epoll_client *>(host_ptr));
     }
 
-    void proxy_client::close_host()
+    void proxy_client::drop_host()
     {
         if (host) {
             proxy::log(util::INFO) << "Client (" << get_fd()->raw_fd() << ") disconnected from "
                                    << host->name << " (" << host->get_fd()->raw_fd() << ").\n";
             host->close();
             write_buf = {};
-            get_epoll()->schedule_close(extract_epoll_client(std::move(host)));
+            get_epoll()->schedule_cleanup(extract_epoll_client(std::move(host)));
         }
     }
 

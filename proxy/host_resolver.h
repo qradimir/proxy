@@ -28,7 +28,7 @@ namespace proxy
 
     public:
 
-        host_resolver(proxy_server *server);
+        explicit host_resolver(proxy_server *server);
 
         void consume_host(std::string const &host);
 

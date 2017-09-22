@@ -8,36 +8,27 @@
 #include <string>
 #include <unordered_map>
 
-namespace network { namespace http
-{
+namespace network { namespace http {
     using header_map = std::unordered_map<std::string, std::string>;
 
-    enum request_type : int
-    {
-        GET, POST
-    };
 
-    request_type from_string(std::string const &str);
-
-    class request_starting_line
-    {
+    class request_starting_line {
     private:
-        request_type type;
+        std::string type;
         std::string uri;
         std::string http_version;
 
     public:
-        request_starting_line(request_type type, std::string const &uri, std::string const &http_version);
+        request_starting_line(std::string const &type, std::string const &uri, std::string const &http_version);
 
-        request_type get_type() const noexcept;
+        std::string const &get_type() const noexcept;
 
         std::string const &get_uri() const noexcept;
 
         std::string const &get_http_version() const noexcept;
     };
 
-    class request
-    {
+    class request {
     private:
         request_starting_line starting_line;
         header_map headers;
@@ -51,12 +42,12 @@ namespace network { namespace http
 
         header_map const &get_headers() const noexcept;
 
+        header_map &get_headers() noexcept;
+
         void relativize();
     };
-    
-    std::string extract_host(request const &req);
 
-    std::string to_string(request_type type);
+    std::string extract_host(request const &req);
 
     std::string to_string(request_starting_line const &starting_line);
 

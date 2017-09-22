@@ -9,18 +9,15 @@
 using namespace network;
 using namespace util;
 
-namespace echo
-{
+namespace echo {
 
     echo_client::echo_client(std::unique_ptr<network::client_socket> &&socket, epoll *ep)
-            : epoll_client(std::move(socket), ep), buf()
-    {
+            : epoll_client(std::move(socket), ep), buf() {
         make_non_blocking(*this->socket());
         init(true, false);
     }
 
-    void echo_client::on_read()
-    {
+    void echo_client::on_read() {
         simple_buffer<char> &buffer = buf.back_buffer();
         const char *begin = buffer.end();
         socket()->receive(buffer);
@@ -29,19 +26,17 @@ namespace echo
         buf.adjust_back();
 
         update(true, true);
-        log(INFO) << "got message '" << util::to_raw(msg) << "' from " << network::socket_endpoint(*fd) << "(fd:"
+        log(INFO) << "got message '" << util::to_raw(msg) << "' from " << network::socket_endpoint(*get_fd()) << "(fd:"
                   << socket()->raw_fd() << ")\n";
     }
 
-    void echo_client::on_write()
-    {
+    void echo_client::on_write() {
         socket()->send(buf.front_buffer());
         buf.adjust_front();
         update(true, !buf.empty());
     }
 
-    network::client_socket *echo_client::socket() noexcept
-    {
-        return static_cast<network::client_socket *>(fd.get());
+    network::client_socket *echo_client::socket() noexcept {
+        return static_cast<network::client_socket *>(get_fd());
     }
 }

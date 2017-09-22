@@ -12,12 +12,10 @@
 #include <condition_variable>
 #include "interrupted.h"
 
-namespace util
-{
+namespace util {
 
     template<typename T>
-    class blocking_queue
-    {
+    class blocking_queue {
     private:
         std::queue<T> queue;
         std::mutex mutex;
@@ -33,8 +31,7 @@ namespace util
                 cond.notify_one();
         }
 
-        void push(T const &elem)
-        {
+        void push(T const &elem) {
             std::unique_lock<std::mutex> lock(mutex);
 
             queue.push(elem);
@@ -42,8 +39,7 @@ namespace util
                 cond.notify_one();
         }
 
-        T pop()
-        {
+        T pop() {
             std::unique_lock<std::mutex> lock(mutex);
 
             while (queue.empty() && !interrupted)
@@ -55,14 +51,12 @@ namespace util
             return front;
         }
 
-        void interrupt()
-        {
+        void interrupt() {
             interrupted = true;
             cond.notify_all();
         }
 
-        ~blocking_queue()
-        {
+        ~blocking_queue() {
             interrupt();
         }
     };

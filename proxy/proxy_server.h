@@ -37,7 +37,7 @@ namespace proxy
     public:
         proxy_server(network::ipv4_endpoint endpoint, network::epoll *ep);
 
-        void drop_client(proxy_client *client);
+        void drop_client(int client_fd);
 
         void do_cleanup();
 

@@ -14,8 +14,6 @@ void epoll_stop(int) {
     running_epoll->stop();
 }
 
-
-
 int main(int argc, char **argv)
 {
     uint16_t port_raw = 3338;

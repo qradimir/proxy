@@ -11,12 +11,10 @@
 #include "../util/composed_buffer.h"
 #include "../util/log.h"
 
-namespace echo
-{
+namespace echo {
     static util::log log{"echo"};
 
-    class echo_client : network::epoll_client
-    {
+    class echo_client : network::epoll_client {
     private:
         util::composed_buffer<char> buf;
 
